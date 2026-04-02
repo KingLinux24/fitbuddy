@@ -25,7 +25,7 @@ FitBuddy helps you build and track daily habits. You can:
 
 > Today view — track and complete your daily habits
 
-![Today View](https://i.imgur.com/placeholder.png)
+![Today View](assets/screen.png)
 
 ---
 
