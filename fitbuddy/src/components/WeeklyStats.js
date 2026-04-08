@@ -83,12 +83,13 @@ function WeeklyStats({ streak, weeklyData, habitStats }) {
 
 const styles = {
   card: {
-    backgroundColor: '#fff',
-    border: '1px solid #e0e0e0',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '20px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '20px',
+    padding: '32px',
+    maxWidth: '900px',
   },
   metricRow: {
     display: 'flex',
