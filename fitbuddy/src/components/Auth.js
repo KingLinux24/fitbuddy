@@ -75,7 +75,9 @@ export default function Auth() {
 
   return (
     <>
-      {isLoading && <LoadingOverlay message={loadingMessage} />}
+      {/* ─── FIX: Passed as array to match LoadingOverlay.js ─── */}
+      {isLoading && <LoadingOverlay messages={[loadingMessage]} />}
+      
       <div className="auth-wrapper">
         <div className={`auth-container-slide ${!isLogin ? 'right-panel-active' : ''}`} id="container">
           
