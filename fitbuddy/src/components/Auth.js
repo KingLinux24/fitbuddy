@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import '../App.css'; // Make sure it can see your CSS
+import '../App.css'; 
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState(''); 
   const [isLogin, setIsLogin] = useState(true);
-  const [error, setError] = useState(''); // Added to show errors nicely
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
-    
+    setError(''); 
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
@@ -20,79 +20,90 @@ export default function Auth() {
         await createUserWithEmailAndPassword(auth, email, password);
       }
     } catch (err) {
-      // Intercept specific Firebase error codes and set friendly messages
       switch (err.code) {
         case 'auth/email-already-in-use':
-          setError('This user is already registered. Please click "Log in" below.');
+          setError('This user is already registered. Please sign in.');
           break;
         case 'auth/invalid-credential':
           setError('Incorrect email or password. Please try again.');
           break;
         case 'auth/weak-password':
-          setError('Your password is too weak. It must be at least 6 characters.');
-          break;
-        case 'auth/invalid-email':
-          setError('Please enter a valid email address.');
+          setError('Your password must be at least 6 characters.');
           break;
         default:
-          // Fallback for any other random errors
           setError('An error occurred. Please try again.');
-          console.log("Firebase Error:", err.code); // Keeps the raw error in the console for your debugging
       }
     }
   };
 
   return (
-    <div className="auth-layout">
-      <div className="auth-card">
+    <div className="auth-wrapper">
+      <div className={`auth-container-slide ${!isLogin ? 'right-panel-active' : ''}`} id="container">
         
-        <div className="auth-header">
-          <div className="auth-icon-wrap">
-            <span className="auth-icon">💪</span>
-          </div>
-          <h2 className="auth-title">{isLogin ? 'Welcome Back' : 'Join FitBuddy'}</h2>
-          <p className="auth-subtitle">
-            {isLogin ? 'Ready to crush your goals today?' : 'Start your fitness journey right now.'}
-          </p>
+        {/* ─── SIGN UP FORM ─── */}
+        <div className="form-container sign-up-container">
+          <form onSubmit={handleSubmit} className="slide-form">
+            <h1>Create Account</h1>
+            <span className="form-subtext">Join the FitBuddy community</span>
+            {error && !isLogin && <p className="auth-error-text">{error}</p>}
+            
+            {/* Floating Label Inputs */}
+            <div className="floating-label-group">
+              <input type="text" id="su-name" placeholder=" " value={name} onChange={(e) => setName(e.target.value)} />
+              <label htmlFor="su-name">Username</label>
+            </div>
+
+            <div className="floating-label-group">
+              <input type="email" id="su-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <label htmlFor="su-email">Email Address</label>
+            </div>
+
+            <div className="floating-label-group">
+              <input type="password" id="su-pass" placeholder=" " value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <label htmlFor="su-pass">Password</label>
+            </div>
+
+            <button type="submit" className="slide-btn">Sign Up</button>
+          </form>
         </div>
 
-        {error && <div className="auth-error">{error}</div>}
+        {/* ─── SIGN IN FORM ─── */}
+        <div className="form-container sign-in-container">
+          <form onSubmit={handleSubmit} className="slide-form">
+            <h1>Welcome Back!</h1>
+            <span className="form-subtext">Log in to track your habits</span>
+            {error && isLogin && <p className="auth-error-text">{error}</p>}
+            
+            {/* Floating Label Inputs */}
+            <div className="floating-label-group">
+              <input type="email" id="si-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <label htmlFor="si-email">Email Address</label>
+            </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="input-group">
-            <label>Email Address</label>
-            <input 
-              type="email" 
-              placeholder="you@example.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required 
-            />
+            <div className="floating-label-group">
+              <input type="password" id="si-pass" placeholder=" " value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <label htmlFor="si-pass">Password</label>
+            </div>
+
+            {/* <a href="#" className="forgot-pass">Forgot your password?</a> */}
+            <button type="submit" className="slide-btn">Sign In</button>
+          </form>
+        </div>
+
+        {/* ─── SLIDING OVERLAY PANEL ─── */}
+        <div className="overlay-container">
+          <div className="overlay">
+            <div className="overlay-panel overlay-left">
+              <h1>Already a Member?</h1>
+              <p>Sign in to pick up right where you left off.</p>
+              <button className="slide-btn ghost" onClick={() => setIsLogin(true)}>Sign In</button>
+            </div>
+            <div className="overlay-panel overlay-right">
+              <h1>New Here?</h1>
+              <p>Create an account to start building better habits today.</p>
+              <button className="slide-btn ghost" onClick={() => setIsLogin(false)}>Sign Up</button>
+            </div>
           </div>
-          
-          <div className="input-group">
-            <label>Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <button type="submit" className="auth-submit-btn">
-            {isLogin ? 'Log In to Dashboard' : 'Create Account'}
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          <p>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <span onClick={() => setIsLogin(!isLogin)} className="auth-toggle-link">
-              {isLogin ? "Sign up" : "Log in"}
-            </span>
-          </p>
         </div>
 
       </div>
