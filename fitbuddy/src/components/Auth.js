@@ -1,14 +1,30 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import '../App.css'; 
 
 export default function Auth() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState(''); 
-  const [isLogin, setIsLogin] = useState(true);
+  
+  // Read the URL to determine if we should show the Login or Signup panel
+  const [isLogin, setIsLogin] = useState(location.pathname !== '/signup');
   const [error, setError] = useState('');
+
+  // Keep the panel synced if the user uses the browser's back/forward buttons
+  useEffect(() => {
+    setIsLogin(location.pathname !== '/signup');
+  }, [location.pathname]);
+
+  const handleToggle = (loginState) => {
+    setIsLogin(loginState);
+    navigate(loginState ? '/login' : '/signup');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,13 +33,8 @@ export default function Auth() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        // 1. Create the account
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // 2. Attach the Name to the newly created profile
-        await updateProfile(userCredential.user, {
-          displayName: name
-        });
-        // Force a page reload so the main app sees the new display name immediately
+        await updateProfile(userCredential.user, { displayName: name });
         window.location.reload(); 
       }
     } catch (err) {
@@ -54,10 +65,9 @@ export default function Auth() {
             <span className="form-subtext">Join the FitBuddy community</span>
             {error && !isLogin && <p className="auth-error-text">{error}</p>}
             
-            {/* Floating Label Inputs */}
             <div className="floating-label-group">
               <input type="text" id="su-name" placeholder=" " value={name} onChange={(e) => setName(e.target.value)} />
-              <label htmlFor="su-name">Username</label>
+              <label htmlFor="su-name">Name</label>
             </div>
 
             <div className="floating-label-group">
@@ -77,11 +87,10 @@ export default function Auth() {
         {/* ─── SIGN IN FORM ─── */}
         <div className="form-container sign-in-container">
           <form onSubmit={handleSubmit} className="slide-form">
-            <h1>Welcome Back!</h1>
+            <h1>Welcome Back</h1>
             <span className="form-subtext">Log in to track your habits</span>
             {error && isLogin && <p className="auth-error-text">{error}</p>}
             
-            {/* Floating Label Inputs */}
             <div className="floating-label-group">
               <input type="email" id="si-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} required />
               <label htmlFor="si-email">Email Address</label>
@@ -92,7 +101,7 @@ export default function Auth() {
               <label htmlFor="si-pass">Password</label>
             </div>
 
-            {/* <a href="#" className="forgot-pass">Forgot your password?</a> */}
+            <a href="#" className="forgot-pass">Forgot your password?</a>
             <button type="submit" className="slide-btn">Sign In</button>
           </form>
         </div>
@@ -103,12 +112,12 @@ export default function Auth() {
             <div className="overlay-panel overlay-left">
               <h1>Already a Member?</h1>
               <p>Sign in to pick up right where you left off.</p>
-              <button className="slide-btn ghost" onClick={() => setIsLogin(true)}>Sign In</button>
+              <button type="button" className="slide-btn ghost" onClick={() => handleToggle(true)}>Sign In</button>
             </div>
             <div className="overlay-panel overlay-right">
               <h1>New Here?</h1>
               <p>Create an account to start building better habits today.</p>
-              <button className="slide-btn ghost" onClick={() => setIsLogin(false)}>Sign Up</button>
+              <button type="button" className="slide-btn ghost" onClick={() => handleToggle(false)}>Sign Up</button>
             </div>
           </div>
         </div>
