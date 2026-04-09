@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { auth } from './firebase'; // Restored Firebase import
-import { onAuthStateChanged, signOut } from 'firebase/auth'; // Restored Auth hooks
+import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth'; // Restored Auth hooks
 import Auth from './components/Auth'; // Restored Auth screen
 import './App.css'; // Keep for Auth screen styles
 
@@ -79,8 +79,9 @@ const NAV = [
 
 function App() {
   const [view, setView] = useState('today');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Restored Auth State
+  // Auth State
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -112,6 +113,20 @@ function App() {
   function handleComplete(id) { dispatch(completeHabitAsync({ date: selectTodayKey(), id })); }
   function handleAdd(habit)   { dispatch(addHabitAsync(habit)); }
   function handleDelete(id)   { dispatch(deleteHabitAsync(id)); }
+
+  const handleDeleteAccount = async () => {
+    // 1. Confirm with the user first!
+    if (window.confirm("Are you sure you want to delete your FitBuddy account? This will erase all your habits and history forever.")) {
+      try {
+        await deleteUser(auth.currentUser);
+        window.location.reload(); // Refresh to go back to the login screen
+      } catch (error) {
+        // Firebase requires "recent authentication" for sensitive actions. 
+        // If they've been logged in for 3 weeks, it might fail.
+        alert("For security reasons, please Log Out and Log In again before deleting your account.");
+      }
+    }
+  };
 
   const completedCount  = completedToday.size;
   const totalCount      = habits.length;
@@ -172,23 +187,7 @@ function App() {
         ))}
 
         <div className="fb-sidebar-bottom" style={styles.sidebarBottom}>
-          {/* User avatar card */}
-          <div style={styles.profileCard}>
-            <div style={styles.profileImgRing}>
-              <img src="/image.png" alt="Profile" style={styles.profilePhoto}
-                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
-              />
-              <div style={{ ...styles.profileFallback, display:'none' }}>🌿</div>
-              <div style={styles.profileOnline} />
-            </div>
-            <div style={styles.profileInfo}>
-              {/* Display user email dynamically */}
-              <div style={styles.profileName}>{user?.displayName ? user.displayName : (user?.email ? user.email.split('@')[0] : 'My Profile')}</div>
-              <div style={styles.profileSub}>Habit Tracker</div>
-            </div>
-            <div style={styles.profileBadge}>✦</div>
-          </div>
-
+          
           {/* Streak badge */}
           <div style={styles.streakPill}>
             <div style={styles.streakNum}>🔥 {streak}</div>
@@ -198,13 +197,50 @@ function App() {
             </div>
           </div>
 
-          {/* Restored Logout Button integrated into sidebar */}
-          <button 
-            style={styles.logoutBtn} 
-            onClick={() => { signOut(auth).then(() => window.location.reload()); }}
-          >
-            Log Out
-          </button>
+          {/* Profile Container (Relative for absolute menu positioning) */}
+          <div style={{ position: 'relative', marginTop: '10px' }}>
+            
+            {/* Clickable Profile Card */}
+            <div 
+              style={{ ...styles.profileCard, cursor: 'pointer', borderColor: isMenuOpen ? '#e8a830' : 'rgba(138,171,138,0.2)' }} 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <div style={styles.profileImgRing}>
+                <img src="/image.png" alt="Profile" style={styles.profilePhoto}
+                  onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                />
+                <div style={{ ...styles.profileFallback, display:'none' }}>🌿</div>
+                <div style={styles.profileOnline} />
+              </div>
+              <div style={styles.profileInfo}>
+                <div style={styles.profileName}>{user?.displayName ? user.displayName : (user?.email ? user.email.split('@')[0] : 'My Profile')}</div>
+                <div style={styles.profileSub}>Habit Tracker</div>
+              </div>
+              <div style={styles.profileBadge}>
+                {isMenuOpen ? '▼' : '▲'} {/* Tiny arrow indicates it's a menu */}
+              </div>
+            </div>
+
+            {/* Glassmorphism Popup Menu */}
+            {isMenuOpen && (
+              <div style={styles.profileMenu}>
+                <div style={styles.menuItem} onClick={() => { setIsMenuOpen(false); alert("Settings coming soon!"); }}>
+                  <span style={{ fontSize: '16px' }}>⚙️</span> Account Settings
+                </div>
+                
+                <div style={styles.menuDivider} />
+                
+                <div style={{ ...styles.menuItem, color: '#f5ede0' }} onClick={() => signOut(auth).then(() => window.location.reload())}>
+                  <span style={{ fontSize: '16px' }}>🚪</span> Log Out
+                </div>
+                
+                <div style={{ ...styles.menuItem, color: '#ff6b6b' }} onClick={handleDeleteAccount}>
+                  <span style={{ fontSize: '16px' }}>🗑️</span> Delete Account
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       </aside>
 
@@ -387,20 +423,20 @@ const styles = {
   streakTrack: { height: '4px', background: 'rgba(42,143,168,0.2)', borderRadius: '99px', overflow: 'hidden', marginTop: '10px' },
   streakFill: { height: '100%', background: 'linear-gradient(90deg,#c8860a,#2a8fa8)', borderRadius: '99px' },
 
-  // ADDED: Logout Button Style
-  logoutBtn: {
-    marginTop: '4px',
-    background: 'rgba(255, 68, 68, 0.08)',
-    color: '#ff6b6b',
-    border: '1px solid rgba(255, 68, 68, 0.15)',
-    padding: '10px',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    fontSize: '13px',
-    width: '100%',
-    transition: 'background 0.2s',
-  },
+  // // ADDED: Logout Button Style
+  // logoutBtn: {
+  //   marginTop: '4px',
+  //   background: 'rgba(255, 68, 68, 0.08)',
+  //   color: '#ff6b6b',
+  //   border: '1px solid rgba(255, 68, 68, 0.15)',
+  //   padding: '10px',
+  //   borderRadius: '12px',
+  //   cursor: 'pointer',
+  //   fontWeight: '600',
+  //   fontSize: '13px',
+  //   width: '100%',
+  //   transition: 'background 0.2s',
+  // },
 
   /* Main */
   main: { padding: '32px 36px', overflowY: 'auto' },
@@ -444,6 +480,42 @@ const styles = {
   sectionLabel: {
     fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em',
     color: '#8a7060', fontWeight: '500', marginBottom: '12px',
+  },
+
+  // NEW POPUP MENU STYLES
+  profileMenu: {
+    position: 'absolute',
+    bottom: 'calc(100% + 12px)', // Pops up right above the profile card
+    left: '0',
+    width: '100%',
+    background: 'rgba(20, 25, 20, 0.85)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid rgba(138,171,138,0.25)',
+    borderRadius: '16px',
+    padding: '8px',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+    zIndex: 100,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  menuItem: {
+    padding: '12px 14px',
+    borderRadius: '10px',
+    color: '#8aab8a',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    transition: 'all 0.2s',
+  },
+  menuDivider: {
+    height: '1px',
+    background: 'rgba(138,171,138,0.15)',
+    margin: '4px 8px',
   },
 };
 
