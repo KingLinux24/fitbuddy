@@ -1,10 +1,13 @@
+import LoadingOverlay from './components/LoadingOverlay';
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
 import Auth from './components/Auth';
 import './App.css';
+
+import AccountSettings from './components/AccountSettings';
 
 import {
   fetchAll, addHabitAsync, deleteHabitAsync, completeHabitAsync,
@@ -78,6 +81,21 @@ const NAV = [
 function Dashboard({ user }) {
   const [view, setView] = useState('today');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const navigate = useNavigate();
+
+  const logoutMessages = [
+    "Saving your progress...", 
+    "Logging you out...", 
+    "See you next time!"
+  ];
+
+  const handleLogout = async () => {
+    setIsMenuOpen(false);
+    setIsLoggingOut(true);
+    await signOut(auth);
+    window.location.reload();
+  };
   
   const dispatch       = useDispatch();
   const habits         = useSelector(s => s.habits.habits);
@@ -95,17 +113,6 @@ function Dashboard({ user }) {
   function handleComplete(id) { dispatch(completeHabitAsync({ date: selectTodayKey(), id })); }
   function handleAdd(habit)   { dispatch(addHabitAsync(habit)); }
   function handleDelete(id)   { dispatch(deleteHabitAsync(id)); }
-
-  const handleDeleteAccount = async () => {
-    if (window.confirm("Are you sure you want to delete your FitBuddy account? This will erase all your habits and history forever.")) {
-      try {
-        await deleteUser(auth.currentUser);
-        window.location.reload(); 
-      } catch (error) {
-        alert("For security reasons, please Log Out and Log In again before deleting your account.");
-      }
-    }
-  };
 
   const completedCount  = completedToday.size;
   const totalCount      = habits.length;
@@ -130,6 +137,7 @@ function Dashboard({ user }) {
 
   return (
     <div className="fb-shell" style={styles.shell}>
+      {isLoggingOut && <LoadingOverlay messages={logoutMessages} />}
       <aside className="fb-sidebar" style={styles.sidebar}>
         <div className="fb-logo" style={styles.logo}>
           <div style={styles.logoDot} /> FitBuddy
@@ -176,16 +184,16 @@ function Dashboard({ user }) {
 
             {isMenuOpen && (
               <div style={styles.profileMenu}>
-                <div style={styles.menuItem} onClick={() => { setIsMenuOpen(false); alert("Settings coming soon!"); }}>
+                <div style={styles.menuItem} onClick={() => { setIsMenuOpen(false); navigate('/settings'); }}>
                   <span style={{ fontSize: '16px' }}>⚙️</span> Account Settings
                 </div>
+                
                 <div style={styles.menuDivider} />
-                <div style={{ ...styles.menuItem, color: '#f5ede0' }} onClick={() => signOut(auth).then(() => window.location.reload())}>
+                
+                <div style={{ ...styles.menuItem, color: '#f5ede0' }} onClick={handleLogout}>
                   <span style={{ fontSize: '16px' }}>🚪</span> Log Out
                 </div>
-                <div style={{ ...styles.menuItem, color: '#ff6b6b' }} onClick={handleDeleteAccount}>
-                  <span style={{ fontSize: '16px' }}>🗑️</span> Delete Account
-                </div>
+                
               </div>
             )}
           </div>
@@ -295,14 +303,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* If user is logged in, accessing /login or /signup redirects them to the dashboard */}
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
         <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
         
-        {/* The main dashboard route is protected */}
         <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
         
-        {/* Any unknown URL redirects to dashboard if logged in, or login if not */}
+        <Route path="/settings" element={user ? <AccountSettings /> : <Navigate to="/login" />} />
+        
         <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       </Routes>
     </Router>

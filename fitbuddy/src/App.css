@@ -686,3 +686,173 @@
   /* Prevents Chrome from flashing white on load */
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* --- Danger Zone Styling --- */
+.settings-container {
+  padding: 40px;
+  max-width: 800px;
+  color: #fff; /* Adjust based on your theme */
+}
+
+.danger-zone {
+  margin-top: 40px;
+  padding: 24px;
+  border: 1px solid #ff4d4f;
+  border-radius: 8px;
+  background-color: rgba(255, 77, 79, 0.05); /* Slight red tint */
+}
+
+.danger-zone h2 {
+  color: #ff4d4f;
+  margin-top: 0;
+}
+
+.danger-zone p {
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.btn-danger {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-danger:hover {
+  background-color: #d9363e;
+}
+
+/* --- Custom Modal Styling --- */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px); /* Modern blur effect */
+}
+
+.custom-modal {
+  background-color: #2c2c2c; /* Dark theme modal */
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid #444;
+}
+
+.custom-modal h3 {
+  color: #fff;
+  margin-top: 0;
+}
+
+.custom-modal p {
+  color: #aaa;
+  margin-bottom: 25px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modal-button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.btn-cancel {
+  flex: 1;
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #666;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-cancel:hover {
+  background-color: #444;
+}
+
+.btn-confirm-delete {
+  flex: 1;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-confirm-delete:hover {
+  background-color: #d9363e;
+}
+
+/* =========================================
+   GLOBAL LOADING OVERLAY 
+   ========================================= */
+.global-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(20, 20, 20, 0.85); /* Dark transparent background */
+  backdrop-filter: blur(8px); /* The modern "frosted glass" look */
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure it stays on top of everything */
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #fca311; /* Matches your warm orange UI accent */
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 24px;
+}
+
+.loading-text {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  /* Adds a subtle pulsing animation to the text to keep it engaging */
+  animation: pulse-text 1.5s infinite; 
+}
+
+/* Spinner Animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Text Pulse Animation */
+@keyframes pulse-text {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
