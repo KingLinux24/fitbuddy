@@ -3,19 +3,15 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 // import { getAnalytics } from "firebase/analytics";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your web app's Firebase configuration pulling from the hidden .env file
 const firebaseConfig = {
-  apiKey: "AIzaSyBbPVhPnJJCl0OfB3QjohvO2xX7opBZcAE",
-  authDomain: "fitbuddy-c78bc.firebaseapp.com",
-  projectId: "fitbuddy-c78bc",
-  storageBucket: "fitbuddy-c78bc.firebasestorage.app",
-  messagingSenderId: "175297154981",
-  appId: "1:175297154981:web:6194f2818d917e888e624c",
-  measurementId: "G-S5Y24DXMBR"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

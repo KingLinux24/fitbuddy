@@ -94,11 +94,23 @@ function App() {
   const weeklyData     = useSelector(selectWeeklyData);
   const habitStats     = useSelector(selectHabitStats);
 
-  // Restored login/logout listener
+  // Listen for login/logout and send email to server
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
+      
+      // NEW: Tell the backend this user's email so it can send reminders!
+      if (currentUser) {
+        fetch('http://localhost:5000/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId: currentUser.uid, 
+            email: currentUser.email 
+          })
+        }).catch(err => console.log("Could not sync user to backend", err));
+      }
     });
     return () => unsubscribe();
   }, []);
