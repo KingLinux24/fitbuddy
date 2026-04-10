@@ -94,12 +94,12 @@ export default function Auth() {
               </div>
 
               <div className="floating-label-group">
-                <input type="email" id="su-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+                <input type="email" id="su-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
                 <label htmlFor="su-email">Email Address</label>
               </div>
 
               <div className="floating-label-group">
-                <input type="password" id="su-pass" placeholder=" " value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+                <input type="password" id="su-pass" placeholder=" " value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
                 <label htmlFor="su-pass">Password</label>
               </div>
 
@@ -115,12 +115,12 @@ export default function Auth() {
               {error && isLogin && <p className="auth-error-text">{error}</p>}
               
               <div className="floating-label-group">
-                <input type="email" id="si-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+                <input type="email" id="si-email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
                 <label htmlFor="si-email">Email Address</label>
               </div>
 
               <div className="floating-label-group">
-                <input type="password" id="si-pass" placeholder=" " value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+                <input type="password" id="si-pass" placeholder=" " value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
                 <label htmlFor="si-pass">Password</label>
               </div>
 
