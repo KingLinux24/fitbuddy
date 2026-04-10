@@ -1,13 +1,12 @@
-import LoadingOverlay from './components/LoadingOverlay';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { auth } from './firebase';
-import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
-import Auth from './components/Auth';
-import './App.css';
-
+import { auth } from './firebase'; 
+import { onAuthStateChanged, signOut } from 'firebase/auth';  // need to add deleteUser
+import Auth from './components/Auth'; 
+// import LoadingOverlay from './components/LoadingOverlay';
 import AccountSettings from './components/AccountSettings';
+import './App.css'; 
 
 import {
   fetchAll, addHabitAsync, deleteHabitAsync, completeHabitAsync,
@@ -17,9 +16,9 @@ import {
   selectHabitStats, selectTodayKey,
 } from './store/selectors';
 import HabitCard, { CARD_ACCENTS } from './components/HabitCard';
-import AddHabitForm from './components/AddHabitForm';
-import WeeklyStats from './components/WeeklyStats';
-import PomodoroTimer from './components/PomodoroTimer';
+import AddHabitForm                from './components/AddHabitForm';
+import WeeklyStats                 from './components/WeeklyStats';
+import PomodoroTimer               from './components/PomodoroTimer';
 
 /* ─── Google Fonts injected once ─────────────────────────────────────── */
 if (!document.getElementById('fitbuddy-fonts')) {
@@ -81,21 +80,7 @@ const NAV = [
 function Dashboard({ user }) {
   const [view, setView] = useState('today');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navigate = useNavigate();
-
-  const logoutMessages = [
-    "Saving your progress...", 
-    "Logging you out...", 
-    "See you next time!"
-  ];
-
-  const handleLogout = async () => {
-    setIsMenuOpen(false);
-    setIsLoggingOut(true);
-    await signOut(auth);
-    window.location.reload();
-  };
+  const navigate = useNavigate(); // Added so we can route to settings
   
   const dispatch       = useDispatch();
   const habits         = useSelector(s => s.habits.habits);
@@ -137,7 +122,6 @@ function Dashboard({ user }) {
 
   return (
     <div className="fb-shell" style={styles.shell}>
-      {isLoggingOut && <LoadingOverlay messages={logoutMessages} />}
       <aside className="fb-sidebar" style={styles.sidebar}>
         <div className="fb-logo" style={styles.logo}>
           <div style={styles.logoDot} /> FitBuddy
@@ -187,13 +171,10 @@ function Dashboard({ user }) {
                 <div style={styles.menuItem} onClick={() => { setIsMenuOpen(false); navigate('/settings'); }}>
                   <span style={{ fontSize: '16px' }}>⚙️</span> Account Settings
                 </div>
-                
                 <div style={styles.menuDivider} />
-                
-                <div style={{ ...styles.menuItem, color: '#f5ede0' }} onClick={handleLogout}>
+                <div style={{ ...styles.menuItem, color: '#f5ede0' }} onClick={() => signOut(auth).then(() => window.location.reload())}>
                   <span style={{ fontSize: '16px' }}>🚪</span> Log Out
                 </div>
-                
               </div>
             )}
           </div>
@@ -270,20 +251,19 @@ function Dashboard({ user }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// THE ROUTER & AUTHENTICATION WRAPPER
+// INNER APP LOGIC (Protected from Context Errors)
 // ─────────────────────────────────────────────────────────────────
-function App() {
+function MainApp() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Listen for login/logout and send email to server
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
       
       if (currentUser) {
-        fetch('http://localhost:5000/users', {
+        fetch(process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: currentUser.uid, email: currentUser.email })
@@ -301,17 +281,24 @@ function App() {
   );
 
   return (
+    <Routes>
+      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+      <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+      <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
+      {/* ─── NEW ROUTE FOR SETTINGS ─── */}
+      <Route path="/settings" element={user ? <AccountSettings /> : <Navigate to="/login" />} />
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+    </Routes>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ROOT COMPONENT WITH GLOBAL ROUTER
+// ─────────────────────────────────────────────────────────────────
+export default function App() {
+  return (
     <Router>
-      <Routes>
-        <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
-        <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
-        
-        <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
-        
-        <Route path="/settings" element={user ? <AccountSettings /> : <Navigate to="/login" />} />
-        
-        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
-      </Routes>
+      <MainApp />
     </Router>
   );
 }
@@ -362,5 +349,3 @@ const styles = {
   menuItem: { padding: '12px 14px', borderRadius: '10px', color: '#8aab8a', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' },
   menuDivider: { height: '1px', background: 'rgba(138,171,138,0.15)', margin: '4px 8px' }
 };
-
-export default App;

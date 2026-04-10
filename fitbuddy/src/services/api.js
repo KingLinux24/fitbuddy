@@ -1,6 +1,7 @@
 import { auth } from '../firebase'; 
 
-const BASE = 'http://localhost:5000';
+// This uses the environment variable, but falls back to localhost just in case
+const BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
 async function request(path, options = {}) {
   const userId = auth.currentUser ? auth.currentUser.uid : null;
